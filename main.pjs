@@ -1,0 +1,8 @@
+$meta
+  title = Cut Bench Pro — asset cutting + masking + retouching
+  description = Cut out anything: rect crop, lasso, mask brushes, magic color key, heal + clone retouch, feather/contract edge refine. All tool tuning persists. Rig lab, sandbox, keeper, logger included.
+
+kv = {import:kv-plugin}
+
+title
+  Cut Bench Pro

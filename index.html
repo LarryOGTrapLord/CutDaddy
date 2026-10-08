@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cut Bench Pro — asset cutting + masking + retouching</title>
+<meta name="description" content="Cut out anything: rect crop, lasso, mask brushes, magic color key, heal + clone retouch, feather/contract edge refine. With rig lab, sandbox, keeper, logger." />
+<link rel="stylesheet" href="src/gate.css" />
+</head>
+<body>
+<header class="top">
+  <span class="brand">▚ CUT BENCH PRO</span>
+  <span class="meta" id="brandMetaEl">…</span>
+  <span style="flex:1"></span>
+  <span class="kv">keys 1-7 · ? dash</span>
+</header>
+<div id="gateBanner" class="locked">…</div>
+<!-- PATCHES mascot bar (silent ragdoll, status + note button) -->
+<div id="dollBar" aria-live="polite">
+  <svg viewBox="0 0 48 72" width="34" height="51" aria-label="PATCHES the ragdoll" role="img">
+    <line x1="24" y1="2" x2="24" y2="10" stroke="#7d93ad" stroke-width="1.6"/>
+    <line x1="8" y1="30" x2="16" y2="34" stroke="#b08968" stroke-width="5" stroke-linecap="round"/>
+    <line x1="40" y1="30" x2="32" y2="34" stroke="#b08968" stroke-width="5" stroke-linecap="round"/>
+    <line x1="19" y1="58" x2="17" y2="68" stroke="#b08968" stroke-width="5" stroke-linecap="round"/>
+    <line x1="29" y1="58" x2="31" y2="68" stroke="#b08968" stroke-width="5" stroke-linecap="round"/>
+    <rect x="13" y="28" width="22" height="32" rx="9" fill="#b08968"/>
+    <line x1="24" y1="30" x2="24" y2="58" stroke="#7a5c3e" stroke-width="1.4" stroke-dasharray="3 2"/>
+    <circle cx="24" cy="18" r="10" fill="#c9a06a"/>
+    <g stroke="#0a0e12" stroke-width="1.4">
+      <line x1="17" y1="15" x2="21" y2="19"/><line x1="21" y1="15" x2="17" y2="19"/>
+      <line x1="27" y1="15" x2="31" y2="19"/><line x1="31" y1="15" x2="27" y2="19"/>
+    </g>
+    <path d="M20 23 Q24 25 28 23" stroke="#0a0e12" stroke-width="1.4" fill="none"/>
+    <path d="M15 10 Q24 4 33 10" stroke="#7d93ad" stroke-width="1.4" fill="none" stroke-dasharray="2 2"/>
+    <g id="dollPatches"></g>
+  </svg>
+  <div class="who">
+    <div id="dollName">PATCHES <span class="side">ragdoll · silent · under repair</span></div>
+    <div id="dollStatusEl">…</div>
+  </div>
+  <span style="flex:1"></span>
+  <button id="dollNoteBtn" class="small" hidden>see note</button>
+</div>
+<nav class="tabs" id="mainNav" aria-label="bench sections"></nav>
+
+<main class="wrap">
+  <!-- TAB 1 · dashboard (XP, streaks, bench curve, coaching tip) -->
+<section class="panel" id="tabDash" aria-label="dashboard">
+    <h2>// learning dashboard <span class="r kv">xp · streak · curve</span></h2>
+    <div id="dashEl"></div>
+    <div style="margin-top:12px">
+      <canvas id="learnSpark" style="width:100%;height:80px;border:1px solid var(--line);border-radius:8px"></canvas>
+    </div>
+    <div class="kv" id="learnWeakEl" style="margin-top:8px"></div>
+    <div class="kv" id="learnTipEl" style="margin-top:4px"></div>
+  </section>
+
+  <!-- TAB 2 · CUT BENCH (boots open). Subsections: toolbar → canvases → tune/export → parts grid → §5 selections → §6 layers -->
+<section class="panel" id="tabCut" aria-label="cut bench" hidden>
+    <h2>// cut bench — cutting + masking + retouching <span class="r kv" id="cutCountEl"></span></h2>
+    <details class="kv" style="margin-bottom:8px">
+      <summary><b>replicable method</b> — same 6 steps for any asset</summary>
+      <div class="mono" style="margin-top:6px">1. SOURCE: upload anything, or use the sample card (green = magic-cut practice).
+2. CANVAS: each canvas is a separate project (dropdown to switch, ＋ new, ⧉ duplicate, ✖ twice deletes, name it inline). Everything below persists per canvas.
+3. CUT: drag ▦ rect for a new box (tap a box to select/move it, handles reshape) — boxes stack and each has its own color. Lasso around subjects — every close makes a NEW poly. ◎ subject grabs the biggest blob in one touch, ◉ blobs grabs each piece. Path ⌁ → selection adds its curve as a poly. ＋ keeps an area, － punches out. ◐/◑ flips: keep inside vs keep outside.
+4. PATHS (⌁ path): ADD taps/drags anchors, EDIT moves them (big handles). Drag empty space to move the whole path. ↩ undo restores deletes/moves. ∿/┐ toggles curved (anchors bend it) vs straight; → selection copies the curve; ✎ stroke paints the curve into the mask; ⍈ snap pulls every anchor to detected edges. Nudge pad / arrow keys: 1px per tap (shift 5px on keyboard, double-tap 5px on touch). Snap row: grid overlay + snap-to-grid, magnetic pulls to detected edges (edges toggle previews them).
+5. MASK: keep/cut brushes paint the alpha. Red = cut away. Every stroke replays — nothing is destructive.
+6. MAGIC: click a background color to key it out. Tolerance persists; paint back details with the keep brush.
+7. LAYERS: ⧉ copy→layer lifts the selection onto a new layer (base intact); ✂ cut→layer also punches the shape out of the base. Per layer: 👁, opacity, blend, x/y offset, ↑/↓ order, ✖, ↩ undo. Export PNG includes all visible layers.
+8. GRID NODES + EXPORT: feather softens the edge, contract shrinks/grows it. Send cut to grid as an element / asset / piece / object — each becomes a node (size · aspect · kept% · scale with lockable proportions, tap the kind tag to re-tag, filter by kind). Edit reloads a node for further refinement. VIEW switches the result between composite / mask / base; LAYOUT reflows the panels (side / stack / edit / result); ⧉ pop opens the result in its own window. Export transparent PNG, keep as note, or save the recipe JSON.</div>
+    </details>
+    <!-- CONTROL RACK: minimal sticky bar. Mode buttons move here at boot; pinned tools proxy the drawer. -->
+    <div id="rackBar" class="rackbar" role="toolbar" aria-label="control rack">
+      <span class="row" style="gap:6px;flex:none" aria-label="workbench switcher">
+        <select id="benchSelCut" aria-label="workbench" title="workbench — pick your tool set" style="max-width:150px;min-height:44px"></select>
+        <button id="benchGoBtn" class="small" title="open workbench builder">benches…</button>
+      </span>
+      <span class="rack-sep" aria-hidden="true"></span>
+      <span id="rackModes" class="row" style="gap:6px"></span>
+      <span id="rackPins" class="row" style="gap:6px"></span>
+      <span style="flex:1"></span>
+      <span class="kv" id="benchActiveMeta" style="flex:none"></span>
+      <button id="rackToolsBtn" class="small">tools ▸</button>
+      <button id="rackCustomBtn" class="small" aria-label="customize ui">custom</button>
+    </div>
+    <div id="toolDrawer" class="tooldrawer" hidden>
+      <div class="kv" style="margin:2px 0 6px">all tools live here — pin favourites to the rack from custom</div>
+      <div id="toolDrawerBody"></div>
+    </div>
+    <div id="rackPop" class="rackpop" hidden>
+      <h3>rack pins <span class="kv">— tap to add / remove</span></h3>
+      <div id="rackPinGrid" class="row" style="flex-wrap:wrap;gap:6px"></div>
+      <h3 style="margin-top:8px">panels</h3>
+      <div id="rackPanelList" class="row" style="flex-wrap:wrap;gap:6px"></div>
+      <div class="row" style="margin-top:8px"><button id="rackResetBtn" class="small">reset ui</button></div>
+    </div>
+    <div class="row tb-row" id="tbSource">
+      <!-- source row: upload / sample card -->
+<button id="cutUploadBtn" class="primary">upload image</button>
+      <input type="file" id="cutFileInput" accept="image/*" hidden />
+      <button id="cutSampleBtn">sample card</button>
+      <span id="cutTools" class="row" role="toolbar" aria-label="cut tools"></span>
+    </div>
+    <div class="row tb-row" style="margin-top:8px" id="tbCanvas">
+      <span class="kv">canvas</span>
+      <!-- projects row: multi-canvas dropdown + new/dup/del (§14 in cut.js) -->
+<select id="projSel" aria-label="project"></select>
+      <input type="text" id="projNameInput" style="max-width:130px" aria-label="project name" />
+      <button id="projNewBtn" class="small">＋ new</button>
+      <button id="projDupBtn" class="small">⧉ dup</button>
+      <button id="projDelBtn" class="small danger">✖</button>
+    </div>
+    <div class="row tb-row" style="margin-top:8px" id="tbHist">
+      <!-- history row: mask/retouch undo, clear, full-frame, lasso, clone-source -->
+<button id="cutUndoBtn" class="small">↩ undo mask</button>
+      <button id="cutRetouchUndoBtn" class="small">↩ undo retouch</button>
+      <button id="cutClearBtn" class="small">clear mask</button>
+      <button id="cutRectFullBtn" class="small">full frame</button>
+      <button id="cutLassoApplyBtn" class="small">close lasso</button>
+      <button id="cutLassoClearBtn" class="small">clear lasso</button>
+      <button id="cutCloneSetBtn" class="small">set clone source</button>
+    </div>
+    <div class="row tb-row" style="margin-top:8px" id="tbMagic">
+      <label class="kv">magic <input type="color" id="cutMagicColor" value="#2fae5f" style="width:52px;min-height:44px" /></label>
+      <label class="kv">tolerance <input type="range" id="cutTol" min="0" max="120" value="32" style="width:110px" /></label>
+      <!-- magic color-key row: color + tolerance + apply -->
+<button id="cutMagicBtn" class="small">apply to color</button>
+    </div>
+    <div class="row tb-row" id="tbSel" style="margin-top:8px">
+      <span class="kv">selection</span>
+      <label class="kv">color <input type="color" id="cutSelColor" value="#38e1a8" style="width:52px;min-height:44px" /></label>
+      <select id="cutSelStyle" aria-label="selection line style">
+        <option value="solid">solid</option>
+        <option value="dash">dash</option>
+        <option value="dots">dots</option>
+        <option value="x">x-cross</option>
+        <option value="ants" selected>marching ants</option>
+      </select>
+      <button id="cutLockBtn" class="small">🔓 unlocked</button>
+      <button id="cutInverseBtn" class="small" title="flip which side of the selection is kept">◐ keep inside</button>
+    </div>
+    <div class="row" id="cutLassoBar" style="margin-top:8px" hidden>
+      <span class="kv">lasso</span>
+      <!-- lasso row: draw/edit modes, undo/del point (§9) -->
+<button id="cutLassoDrawBtn" class="small">＋ add pts</button>
+      <button id="cutLassoEditBtn" class="small">✥ edit pts</button>
+      <button id="cutLassoUndoPtBtn" class="small">↩ undo pt</button>
+      <button id="cutLassoDelPtBtn" class="small">✖ del sel pt</button>
+      <span class="kv" id="cutLassoInfo"></span>
+    </div>
+    <div class="row" id="cutPathBar" style="margin-top:8px" hidden>
+      <span class="kv">path</span>
+      <!-- path row: draw/edit/new/close/use/stroke/snap/del/undo/smooth + path picker (§7) -->
+<button id="cutPathDrawBtn" class="small">＋ add</button>
+      <button id="cutPathEditBtn" class="small">✥ edit</button>
+      <button id="cutPathNewBtn" class="small">new path</button>
+      <button id="cutPathCloseBtn" class="small">close</button>
+      <button id="cutPathUseBtn" class="small">→ selection</button>
+      <button id="cutPathStrokeBtn" class="small">✎ stroke</button>
+      <select id="cutPathStrokeMode" aria-label="stroke mode">
+        <option value="cut">cut</option>
+        <option value="keep">keep</option>
+      </select>
+      <button id="cutPathSnapBtn" class="small">⍈ snap</button>
+      <button id="cutPathDelPtBtn" class="small">✖ del pt</button>
+      <button id="cutPathDelBtn" class="small">del path</button>
+      <button id="cutPathUndoBtn" class="small">↩ undo</button>
+      <button id="cutPathSmoothBtn" class="small">∿ smooth</button>
+      <select id="cutPathSel" aria-label="active path" style="max-width:150px"></select>
+      <span class="kv" id="cutPathInfo"></span>
+    </div>
+    <div class="row" id="cutSnapBar" style="margin-top:8px">
+      <span class="kv">snap</span>
+      <label class="kv"><input type="checkbox" id="cutGridShowChk" /> grid</label>
+      <label class="kv"><input type="checkbox" id="cutGridSnapChk" /> snap</label>
+      <!-- snap row: grid overlay + snap-to-grid + magnetic + nudge pad (§6) -->
+<select id="cutGridN" aria-label="grid divisions">
+        <option value="8">8</option>
+        <option value="12">12</option>
+        <option value="16" selected>16</option>
+        <option value="24">24</option>
+        <option value="32">32</option>
+      </select>
+      <label class="kv"><input type="checkbox" id="cutEdgeSnapChk" /> magnetic</label>
+      <label class="kv"><input type="checkbox" id="cutEdgeShowChk" /> edges</label>
+    </div>
+    <div class="row" id="cutNudgePad" style="margin-top:8px" hidden>
+      <span class="kv">nudge</span>
+      <button id="cutNudgeL" aria-label="nudge left">◀</button>
+      <button id="cutNudgeU" aria-label="nudge up">▲</button>
+      <button id="cutNudgeD" aria-label="nudge down">▼</button>
+      <button id="cutNudgeR" aria-label="nudge right">▶</button>
+      <span class="kv" id="cutNudgeInfo"></span>
+    </div>
+    <div class="row tb-row" style="margin-top:8px" id="tbAuto">
+      <span class="kv">auto</span>
+      <!-- auto row: ◎ subject / ◉ blobs + ⧉ copy→layer / ✂ cut→layer (§12–13) -->
+<button id="subjBtn" class="small primary">◎ subject</button>
+      <button id="blobsBtn" class="small">◉ blobs</button>
+      <label class="kv">tol <input type="range" id="subjTol" min="8" max="80" value="36" style="width:90px" /></label>
+      <button id="copyLayerBtn" class="small">⧉ copy→layer</button>
+      <button id="cutLayerBtn" class="small">✂ cut→layer</button>
+    </div>
+    <div class="row tb-row" style="margin-top:8px" id="tbView">
+      <span class="kv">view</span>
+      <!-- view row: composite/mask/base + layout presets + pop-out (§14) -->
+<select id="cutViewMode" aria-label="result view">
+        <option value="comp">composite</option>
+        <option value="mask">mask</option>
+        <option value="base">base</option>
+      </select>
+      <span class="kv">layout</span>
+      <button id="laySideBtn" class="small">side</button>
+      <button id="layStackBtn" class="small">stack</button>
+      <button id="layEditBtn" class="small">edit</button>
+      <button id="layResultBtn" class="small">result</button>
+      <span class="kv" id="cutSplitWrap">split <input type="range" id="cutSplit" min="20" max="80" value="50" style="width:90px" aria-label="edit/result split" /></span>
+      <button id="cutSplitLockBtn" class="small" title="lock the split size">🔓</button>
+      <button id="popBtn" class="small">⧉ result pop</button>
+      <button id="popEditBtn" class="small">⧉ edit pop</button>
+    </div>
+    <div class="grid2" style="margin-top:8px" id="cutGrid2">
+      <!-- canvases: edit (paint the mask) + result (transparent export) -->
+<div id="cutColEdit">
+        <h3>1 · edit — paint the mask</h3>
+        <canvas id="cutEdit" style="width:100%;border:1px solid var(--line);border-radius:8px;touch-action:none"></canvas>
+        <div class="row" style="margin-top:6px">
+          <label class="kv">brush <input type="range" id="cutBrushSize" min="2" max="160" value="36" style="width:110px" /></label>
+          <label class="kv">hard <input type="range" id="cutHard" min="0" max="100" value="65" style="width:90px" /></label>
+          <label class="kv"><input type="checkbox" id="cutOverlayChk" checked /> overlay</label>
+        </div>
+        <div class="row" style="margin-top:6px">
+          <label class="kv">feather <input type="range" id="cutFeather" min="0" max="20" value="2" style="width:110px" /></label>
+          <label class="kv">contract <input type="range" id="cutContract" min="-10" max="10" value="0" style="width:110px" /></label>
+        </div>
+        <div class="kv" id="cutToolEl" style="margin-top:6px"></div>
+      </div>
+      <div id="cutColResult">
+        <h3>2 · result — transparent export</h3>
+        <canvas id="cutView" style="width:100%;border:1px solid var(--line);border-radius:8px"></canvas>
+        <div class="row" style="margin-top:6px">
+          <label class="kv"><input type="checkbox" id="cutCheckerChk" checked /> checker</label>
+        </div>
+        <div id="tuneWrap">
+        <h3 style="margin-top:10px">3 · retouch (persists)</h3>
+        <div class="row">
+          <label class="kv">bright <input type="range" id="cutBri" min="-100" max="100" value="0" style="width:90px" /></label>
+          <label class="kv">contrast <input type="range" id="cutCon" min="-100" max="100" value="0" style="width:90px" /></label>
+          <label class="kv">saturate <input type="range" id="cutSat" min="0" max="200" value="100" style="width:90px" /></label>
+        </div>
+        <div class="row" style="margin-top:6px">
+          <label class="kv">warmth <input type="range" id="cutWarm" min="-100" max="100" value="0" style="width:90px" /></label>
+          <label class="kv">sharpen <input type="range" id="cutSharp" min="0" max="100" value="0" style="width:90px" /></label>
+          <!-- tune + export row: retouch sliders, PNG/JSON recipe, keep asset -->
+<button id="cutResetTuneBtn" class="small">reset tune</button>
+        </div>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <button id="cutSnapBtn" class="small primary">export PNG</button>
+          <button id="cutJsonBtn" class="small">recipe JSON</button>
+          <button id="cutRecipeLoadBtn" class="small">load recipe</button>
+          <input type="file" id="cutRecipeFileInput" accept="application/json" hidden />
+          <button id="cutKeepBtn" class="small">keep asset</button>
+        </div>
+        <div class="log" id="cutInfoEl" style="margin-top:8px">no image yet.</div>
+      </div>
+    </div>
+    <div style="margin-top:12px" id="partsWrap">
+      <!-- parts grid: save-as element/asset/piece/object + filter + zoom (§10) -->
+      <h3>4 · parts grid — cut pieces as nodes</h3>
+      <div class="row">
+        <button id="cutSendGridBtn" class="small primary">＋ send cut to grid</button>
+        <select id="partKindSel" aria-label="save kind">
+          <option value="element">element</option>
+          <option value="asset">asset</option>
+          <option value="piece">piece</option>
+          <option value="object">object</option>
+        </select>
+        <select id="partFilterSel" aria-label="kind filter">
+          <option value="">all kinds</option>
+          <option value="element">elements</option>
+          <option value="asset">assets</option>
+          <option value="piece">pieces</option>
+          <option value="object">objects</option>
+        </select>
+        <label class="kv">zoom <input type="range" id="cutGridZoom" min="72" max="240" value="128" style="width:110px" /></label>
+        <button id="cutGridClearBtn" class="small danger">clear grid</button>
+        <span class="kv" id="cutPartsInfo"></span>
+      </div>
+      <div id="cutPartsGrid" class="parts-grid" style="margin-top:8px"></div>
+      <div class="kv" style="margin-top:6px">each cut becomes its own node with size · aspect · scale metadata. Scale per-node (lock keeps proportions), zoom changes the grid. “edit” reloads a node for further refinement.</div>
+    </div>
+    <div style="margin-top:12px" id="selWrap">
+      <!-- §5 SELECTIONS panel: boxes + polys lists (§11) -->
+<h3>5 · selections — boxes + polys <span class="kv" id="selCountEl"></span></h3>
+      <div class="kv" style="margin-bottom:6px">tap a row to make it active (gets handles). ＋ adds to the kept area, － cuts out. New boxes/polys cycle colors.</div>
+      <h3 style="margin-top:8px">boxes</h3>
+      <div class="row">
+        <button id="rectDelBtn" class="small">✖ del box</button>
+        <button id="rectDupBtn" class="small">⧉ dup box</button>
+      </div>
+      <div id="rectList" style="margin-top:6px"></div>
+      <h3 style="margin-top:8px">polys</h3>
+      <div class="row">
+        <button id="polyDelBtn" class="small">✖ del poly</button>
+      </div>
+      <div id="polyList" style="margin-top:6px"></div>
+    </div>
+    <div style="margin-top:12px" id="layerWrap">
+      <!-- §6 LAYERS panel: layer stack UI (§12) -->
+<h3>6 · layers <span class="kv" id="layerCountEl"></span></h3>
+      <div class="row">
+        <button id="layerUndoBtn" class="small">↩ undo layer</button>
+        <button id="layerClearBtn" class="small danger">clear layers</button>
+      </div>
+      <div id="layerList" style="margin-top:6px"></div>
+      <div class="kv" style="margin-top:6px">copy→layer keeps the base intact; cut→layer also punches the shape out of the base. Click a layer to make it active. Export PNG includes all visible layers.</div>
+    </div>
+  </section>
+
+  <!-- TAB 3 · RIG LAB (src/rig.js: regions → dice → pivots → layers → pose) -->
+<section class="panel" id="tabRig" aria-label="rig lab" hidden>
+    <h2>// rig lab — act 1: 2d cutout character <span class="r kv" id="rigCountEl"></span></h2>
+    <details class="kv" style="margin-bottom:8px">
+      <summary><b>replicable method</b> — same 5 steps for any character image</summary>
+      <div class="mono" style="margin-top:6px">1. SOURCE: front-facing character, arms slightly out, feet apart. Transparent PNG reassembles cleanest; any image works — cut one in the cut bench first for best results.
+2. REGIONS: the 15 canonical sections are overlaid. Click a part, drag its box to fit (corner grip resizes, red dot drags the pivot).
+3. DICE: each region is cut to its own rigid sprite. Pieces never deform — only rotate.
+4. PIVOTS: put each red dot on its joint (neck, waist, shoulders, elbows, wrists, hips, knees, ankles).
+5. LAYERS + POSE: ↑/↓ sets draw order back→front; sliders drive the FK bones. Presets + dance to test. Export JSON = the whole recipe.</div>
+    </details>
+    <div class="row">
+      <button id="rigUploadBtn" class="primary">upload image</button>
+      <input type="file" id="rigFileInput" accept="image/*" hidden />
+      <button id="rigSampleBtn">sample hero</button>
+      <button id="rigDiceBtn">◈ dice regions</button>
+      <button id="rigResetBtn" class="small">reset template</button>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <span class="kv">selection</span>
+      <label class="kv">color <input type="color" id="rigSelColor" value="#5ec8ff" style="width:52px;min-height:44px" /></label>
+      <select id="rigSelStyle" aria-label="region line style">
+        <option value="solid">solid</option>
+        <option value="dash" selected>dash</option>
+        <option value="dots">dots</option>
+        <option value="x">x-cross</option>
+        <option value="ants">marching ants</option>
+      </select>
+      <button id="rigLockBtn" class="small">🔓 unlocked</button>
+    </div>
+    <div class="grid2" style="margin-top:8px">
+      <div>
+        <h3>1 · regions + pivots <span class="kv" id="rigSelEl"></span></h3>
+        <canvas id="rigEdit" style="width:100%;border:1px solid var(--line);border-radius:8px;touch-action:none"></canvas>
+        <div class="row" style="margin-top:6px">
+          <label class="kv">x <input type="number" id="rigRX" step="0.01" min="0" max="1" style="width:70px" /></label>
+          <label class="kv">y <input type="number" id="rigRY" step="0.01" min="0" max="1" style="width:70px" /></label>
+          <label class="kv">w <input type="number" id="rigRW" step="0.01" min="0.02" max="1" style="width:70px" /></label>
+          <label class="kv">h <input type="number" id="rigRH" step="0.01" min="0.02" max="1" style="width:70px" /></label>
+        </div>
+        <h3 style="margin-top:10px">2 · layers (back → front)</h3>
+        <div id="rigPartsEl"></div>
+      </div>
+      <div>
+        <h3>3 · pose → reassembled rigid body</h3>
+        <canvas id="rigView" style="width:100%;border:1px solid var(--line);border-radius:8px"></canvas>
+        <div class="row" style="margin-top:6px">
+          <button id="rigPoseBindBtn" class="small">bind</button>
+          <button id="rigPoseWaveBtn" class="small">wave</button>
+          <button id="rigPoseWalkBtn" class="small">walk</button>
+          <button id="rigPoseBowBtn" class="small">bow</button>
+          <label class="kv"><input type="checkbox" id="rigDanceChk" /> dance</label>
+        </div>
+        <div class="row" style="margin-top:6px">
+          <label class="kv">body x <input type="range" id="rigRootX" min="-120" max="120" value="0" style="width:90px" /></label>
+          <label class="kv">y <input type="range" id="rigRootY" min="-120" max="120" value="0" style="width:90px" /></label>
+          <label class="kv">tilt <input type="range" id="rigRootR" min="-45" max="45" value="0" style="width:90px" /></label>
+        </div>
+        <div id="rigPoseEl" style="margin-top:8px;max-height:300px;overflow:auto"></div>
+        <div class="row" style="margin-top:8px">
+          <button id="rigSnapBtn" class="small">snapshot PNG</button>
+          <button id="rigJsonBtn" class="small">export JSON</button>
+          <button id="rigKeepBtn" class="small">keep rig</button>
+          <button id="rigTestBtn" class="small primary">self-test in sandbox</button>
+        </div>
+        <div class="log" id="rigTestOut" style="margin-top:8px">rig not yet tested.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAB 4 · SANDBOX tester (src/sandbox.js, isolated runs) -->
+<section class="panel" id="tabBox" aria-label="sandbox tester" hidden>
+    <h2>// sandbox tester <span class="r kv" id="sandboxGateEl"></span></h2>
+    <div class="row">
+      <select id="sandboxExEl" aria-label="example">
+        <option value="hello">example: hello</option>
+        <option value="fib">example: fib + assert</option>
+        <option value="gate">example: return 42</option>
+      </select>
+      <button id="sandboxRunBtn" class="primary">▶ run</button>
+      <button id="sandboxTestBtn">run + tests</button>
+      <button id="sandboxClearBtn" class="small">clear</button>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <textarea id="sandboxCode" rows="8" spellcheck="false" aria-label="sandbox code"></textarea>
+    </div>
+    <div class="log" id="sandboxOut" style="margin-top:8px">ready.</div>
+    <div class="kv" style="margin-top:4px">runs isolated in a script-only iframe (no DOM access) · 3s timeout · tests: returns 42 · no ERROR lines · logged something</div>
+  </section>
+
+  <!-- TAB 5 · INFO LOGGER (src/logger.js, filterable event stream) -->
+<section class="panel" id="tabLog" aria-label="info logger" hidden>
+    <h2>// info logger <span class="r kv" id="logCountEl">0</span></h2>
+    <div class="toolbar row">
+      <select id="logKindEl" aria-label="kind filter"></select>
+      <input type="text" id="logSearchInput" placeholder="search kind + message" style="flex:1;min-width:140px" aria-label="log search" />
+      <button id="logPauseBtn" class="small">pause</button>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <label class="kv"><input type="checkbox" id="logScrollChk" checked /> autoscroll</label>
+      <span style="flex:1"></span>
+      <button id="logExportBtn" class="small">export JSON</button>
+      <button id="logCsvBtn" class="small">export CSV</button>
+      <button id="logClearBtn" class="small danger">clear</button>
+    </div>
+    <div id="logList" class="log" style="margin-top:8px;max-height:360px" aria-live="polite"></div>
+  </section>
+
+  <!-- TAB 6 · DATA KEEPER (src/keeper.js, tagged notes + pins) -->
+<section class="panel" id="tabKeep" aria-label="data keeper" hidden>
+    <h2>// data keeper <span class="r kv" id="keeperCountEl"></span></h2>
+    <input type="hidden" id="keeperIdInput" />
+    <div class="row">
+      <input type="text" id="keeperTitleInput" placeholder="title" style="flex:1;min-width:140px" aria-label="note title" />
+    </div>
+    <div class="row" style="margin-top:8px">
+      <textarea id="keeperBodyInput" rows="3" placeholder="body — facts, links, ideas…" aria-label="note body"></textarea>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <input type="text" id="keeperTagsInput" placeholder="tags, comma separated" style="flex:1;min-width:140px" aria-label="note tags" />
+      <button id="keeperSaveBtn" class="primary">keep it</button>
+      <button id="keeperClearBtn" class="small">clear</button>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <select id="keeperTagEl" aria-label="tag filter"></select>
+      <input type="text" id="keeperSearchInput" placeholder="search notes…" style="flex:1;min-width:140px" aria-label="keeper search" />
+      <button id="keeperExportBtn" class="small">export</button>
+      <button id="keeperImportBtn" class="small">import</button>
+      <input type="file" id="keeperFileInput" accept="application/json" hidden />
+    </div>
+    <div id="keeperList"></div>
+  </section>
+
+  <!-- TAB 7 · WORKBENCHES (src/bench.js: named tool presets that drive the cut bench) -->
+<section class="panel" id="tabBench" aria-label="workbenches" hidden>
+    <h2>// workbenches — your tool sets <span class="r kv" id="benchCountEl"></span></h2>
+    <div class="kv" style="margin-bottom:8px">a workbench is a named tool set for the cut bench: pick <b>modes</b> (paint tools), <b>quick</b> actions for the rack bar, <b>sections</b> for the tools drawer, <b>panels</b> below the canvases, and a layout. The cut bench turns minimalist by showing only the active bench. Start from Minimal, duplicate it, add tools, press <b>use</b>.</div>
+    <div class="row">
+      <button id="benchNewBtn" class="small primary">＋ new bench</button>
+      <button id="benchDupBtn" class="small">⧉ duplicate</button>
+      <button id="benchDelBtn" class="small danger">✖ delete</button>
+      <span style="flex:1"></span>
+      <button id="benchResetBtn" class="small">reset presets</button>
+    </div>
+    <h3 style="margin-top:10px">benches</h3>
+    <div id="benchList"></div>
+    <div id="benchEditor" style="margin-top:12px">
+      <h3>edit bench — <span class="kv" id="benchEditMeta"></span></h3>
+      <div class="row">
+        <input type="text" id="benchNameInput" placeholder="bench name" style="flex:1;min-width:140px" aria-label="bench name" maxlength="40" />
+        <label class="kv">layout <select id="benchLayoutSel" aria-label="bench layout"><option value="side">side</option><option value="stack">stack</option><option value="edit">edit</option><option value="result">result</option></select></label>
+        <label class="kv"><input type="checkbox" id="benchDrawerChk" /> tools open</label>
+        <button id="benchUseBtn" class="small primary">use this bench</button>
+      </div>
+      <h3 style="margin-top:10px">modes — paint tools on the rack</h3>
+      <div id="benchModesGrid" class="row" style="gap:6px"></div>
+      <h3 style="margin-top:10px">quick — action buttons on the rack</h3>
+      <div class="kv" style="margin-bottom:4px">tap to add / remove. Only real cut-bench buttons are listed.</div>
+      <div id="benchActionsGrid" class="row" style="gap:6px"></div>
+      <h3 style="margin-top:10px">sections — rows inside the tools drawer</h3>
+      <div id="benchModulesGrid" class="row" style="gap:6px"></div>
+      <h3 style="margin-top:10px">panels — blocks below the canvases</h3>
+      <div id="benchPanelsGrid" class="row" style="gap:6px"></div>
+    </div>
+  </section>
+</main>
+
+<footer class="help">cut bench pro · cutting + masking + retouching · everything persists locally + kv mirror · v2.0.0</footer>
+
+<script src="src/core.js?v=227"></script>
+<script src="src/logger.js?v=227"></script>
+<script src="src/select.js?v=227"></script>
+<script src="src/cut.js?v=227"></script>
+<script src="src/sandbox.js?v=227"></script>
+<script src="src/keeper.js?v=227"></script>
+<script src="src/learn.js?v=227"></script>
+<script src="src/app.js?v=227"></script>
+<script src="src/persona.js?v=227"></script>
+<script src="src/rig.js?v=227"></script>
+<script src="src/rack.js?v=227"></script>
+<script src="src/bench.js?v=227"></script>
+
+</body>
+</html>
