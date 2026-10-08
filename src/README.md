@@ -1,26 +1,3 @@
-# CutDaddy
-
-
-
-> Exported from the Perchance generator. The live Perchance version is the
-> source of truth for the app logic; this repo mirrors it as a standalone
-> static site (no Perchance engine needed — storage falls back to localStorage).
-
-## Run it
-
-- **Easiest:** open `index.html` directly in a browser, or
-- **GitHub Pages:** Settings → Pages → Deploy from branch → `main` / root.
-  The app is then live at `https://<you>.github.io/CutDaddy/`.
-
-## Layout
-
-- `index.html` — standalone page (wraps the Perchance body HTML).
-- `src/` — app JS + CSS (see [Flow](#flow) below).
-- `perchance/` — original generator sources (`main.pjs` + body HTML)
-  for re-importing into Perchance.
-
----
-
 # Cut Bench Pro
 
 Asset cutting + masking + retouching bench, with rig lab, sandbox, logger, keeper, dashboard.
